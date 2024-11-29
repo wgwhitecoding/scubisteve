@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scuba Diving Adventure</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Game Information -->
+        <div id="score">Score: 0</div>
+        <div id="level">Level: 1</div>
+        <div id="lives">Lives: 3</div>
+        <div id="timer">Time: 120s</div>
+
+        <!-- Start Game Button -->
+        <button id="startBtn">Start Game</button>
+
+        <!-- Modals -->
+        <div id="modal" class="modal">
+            <!-- Modal content dynamically added via JS -->
+        </div>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- Game Script -->
+    <script src="assets/js/script.js"></script>
+</body>
+</html>
