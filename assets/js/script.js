@@ -188,6 +188,7 @@ function update() {
 function startTimer() {
   clearInterval(timerInterval);
   timerInterval = setInterval(() => {
+    if (!gameRunning) return; // Prevent timer from decrementing when paused
     timer--;
     if (timer <= 0) {
       clearInterval(timerInterval);
@@ -195,6 +196,40 @@ function startTimer() {
     }
     updateUI();
   }, 1000);
+}
+
+/******************************************
+ * Pause and Play Logic
+ ******************************************/
+const pauseButton = document.createElement("button");
+pauseButton.id = "pauseBtn";
+pauseButton.textContent = "Pause";
+pauseButton.style.display = "none"; // Initially hidden
+document.body.appendChild(pauseButton);
+
+pauseButton.addEventListener("click", () => {
+  if (gameRunning) {
+    pauseGame();
+    pauseButton.textContent = "Play";
+  } else {
+    resumeGame();
+    pauseButton.textContent = "Pause";
+  }
+});
+
+function pauseGame() {
+  gameRunning = false;
+  clearInterval(gameInterval);
+  clearInterval(timerInterval);
+}
+
+function resumeGame() {
+  gameRunning = true;
+  startTimer();
+  gameInterval = setInterval(() => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    update();
+  }, 16);
 }
 
 /******************************************
@@ -210,17 +245,12 @@ function loseLife() {
   }
 }
 
-function pauseGame() {
-  clearInterval(gameInterval);
-  clearInterval(timerInterval);
-}
-
 function showLifeModal() {
   const modal = document.getElementById("modal");
   modal.innerHTML = `
     <h2>You Crashed!</h2>
     <p>Lives Remaining: ${lives}</p>
-    <button onclick="resumeGame()">Continue</button>
+    <button onclick="closeModal(); resumeGame()">Continue</button>
   `;
   modal.style.display = "block";
 }
@@ -232,7 +262,7 @@ function showGameOverModal() {
     <h2>Game Over!</h2>
     <p>Final Score: ${score}</p>
     <p>Level Reached: ${level}</p>
-    <button onclick="restartGame()">Restart</button>
+    <button onclick="closeModal(); restartGame()">Restart</button>
   `;
   modal.style.display = "block";
 }
@@ -243,8 +273,8 @@ function nextLevelModal() {
   modal.innerHTML = `
     <h2>Level ${level} Completed!</h2>
     <p>Current Score: ${score}</p>
-    <button onclick="nextLevel()">Next Level</button>
-    <button onclick="restartGame()">Restart</button>
+    <button onclick="closeModal(); nextLevel()">Next Level</button>
+    <button onclick="closeModal(); restartGame()">Restart</button>
   `;
   modal.style.display = "block";
 }
@@ -255,6 +285,7 @@ function nextLevelModal() {
 function startGame() {
   gameRunning = true;
   document.getElementById("startBtn").style.display = "none"; // Hide Start Button
+  pauseButton.style.display = "block"; // Show Pause Button
   resetGame();
   closeModal();
   gameInterval = setInterval(() => {
@@ -265,6 +296,7 @@ function startGame() {
 
 function restartGame() {
   document.getElementById("startBtn").style.display = "block"; // Show Start Button
+  pauseButton.style.display = "none"; // Hide Pause Button
   resetGame();
 }
 
@@ -307,59 +339,12 @@ function closeModal() {
   modal.style.display = "none";
 }
 
-function resumeGame() {
-  closeModal();
-  startTimer();
-  gameInterval = setInterval(() => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    update();
-  }, 16);
-}
-
 /******************************************
  * Initialize Game
  ******************************************/
 document.getElementById("startBtn").addEventListener("click", startGame);
 updateUI();
-/******************************************
- * Pause and Play Logic
- ******************************************/
-const pauseButton = document.createElement("button");
-pauseButton.id = "pauseBtn";
-pauseButton.textContent = "Pause";
-pauseButton.style.display = "none"; // Initially hidden
-document.body.appendChild(pauseButton);
 
-// Handle Pause/Resume Logic
-pauseButton.addEventListener("click", () => {
-  if (gameRunning) {
-    pauseGame();
-    pauseButton.textContent = "Play";
-  } else {
-    resumeGame();
-    pauseButton.textContent = "Pause";
-  }
-});
-
-// Modify Start Game to Show Pause Button
-function startGame() {
-  gameRunning = true;
-  document.getElementById("startBtn").style.display = "none"; // Hide Start Button
-  pauseButton.style.display = "block"; // Show Pause Button
-  resetGame();
-  closeModal();
-  gameInterval = setInterval(() => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    update();
-  }, 16);
-}
-
-// Modify Restart Game to Hide Pause Button
-function restartGame() {
-  document.getElementById("startBtn").style.display = "block"; // Show Start Button
-  pauseButton.style.display = "none"; // Hide Pause Button
-  resetGame();
-}
 
 
 
