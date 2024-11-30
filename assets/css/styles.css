@@ -31,34 +31,30 @@ body {
     z-index: 1;
 }
 
-/* Score Display */
-#score, #level, #lives, #timer {
+/* Game Information Display */
+#game-info {
     position: absolute;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
+    top: 10px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
     z-index: 10;
+    color: white;
+    font-family: Arial, sans-serif;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-#score {
-    top: 10px;
-    left: 10px;
-}
-
-#level {
-    top: 30px;
-    left: 10px;
-}
-
-#lives {
-    top: 50px;
-    left: 10px;
+#score, #highestScore, #level, #lives {
+    font-size: 18px;
+    font-weight: bold;
 }
 
 #timer {
-    top: 70px;
-    left: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #FFD700; /* Gold color for emphasis */
 }
 
 /* Start Game Button */
@@ -136,50 +132,6 @@ body {
     transform: scale(0.9);
 }
 
-/* Bubble Effect */
-.bubble {
-    position: absolute;
-    bottom: -100px;
-    width: 20px;
-    height: 20px;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 50%;
-    animation: rise 10s infinite ease-in-out;
-    z-index: 0;
-    pointer-events: none;
-}
-
-.bubble:nth-child(2) {
-    left: 20%;
-    animation-duration: 12s;
-    animation-delay: 1s;
-    width: 25px;
-    height: 25px;
-}
-
-.bubble:nth-child(3) {
-    left: 40%;
-    animation-duration: 14s;
-    animation-delay: 2s;
-    width: 15px;
-    height: 15px;
-}
-
-.bubble:nth-child(4) {
-    left: 60%;
-    animation-duration: 11s;
-    animation-delay: 3s;
-    width: 30px;
-    height: 30px;
-}
-
-.bubble:nth-child(5) {
-    left: 80%;
-    animation-duration: 9s;
-    animation-delay: 4s;
-    width: 10px;
-    height: 10px;
-}
 /* Pause Button Styling */
 #pauseBtn {
     position: absolute;
@@ -205,6 +157,8 @@ body {
 #pauseBtn:active {
     transform: scale(0.9);
 }
+
+
 
 
 @keyframes rise {
