@@ -22,8 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const diver = {
         x: canvas.width / 4,
         y: canvas.height / 2,
-        size: 50,
-        color: "yellow",
+        size: 150,  // Keep the size, but it's not used for image height/width
+        image: new Image(),
         velocity: { x: 0, y: 0 },
         speed: 2.5,
         moveUp: false,
@@ -31,6 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
         moveLeft: false,
         moveRight: false,
     };
+    diver.image.src = "assets/images/scubi_steve.png";
+    
   
     window.addEventListener("keydown", (e) => {
         if (modalOpen) return;
@@ -104,32 +106,56 @@ document.addEventListener("DOMContentLoaded", () => {
   
     class Obstacle {
         constructor() {
-            this.x = canvas.width + Math.random() * 200;
-            this.y = Math.random() * canvas.height;
-            this.size = 50;
+            this.x = canvas.width + Math.random() * 200; // Initial position on the canvas
+            this.y = Math.random() * canvas.height; // Initial vertical position
+            this.size = 60;  // Set the size of the obstacle (square size for the image)
+            this.image = new Image();
+            const imageChoice = Math.random() < 0.5 ? "shark.png" : "octopus.png"; // Randomly choose image
+            this.image.src = `assets/images/${imageChoice}`;
+        
+            this.loaded = false;
+            this.image.onload = () => {
+                this.loaded = true;  // Set the flag to true once the image is loaded
+            };
         }
-  
+    
         move() {
-            this.x -= 0.5 + level * 0.2;
+            this.x -= 0.5 + level * 0.2;  // Move the obstacle from right to left
         }
-  
+    
         display() {
-            ctx.fillStyle = "gray";
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size / 2, 0, Math.PI * 2);
-            ctx.fill();
-        }
-  
-        checkCollision() {
-            if (invincible) return false;
-            const distance = Math.hypot(this.x - diver.x, this.y - diver.y);
-            if (distance < this.size / 2 + diver.size / 2) {
-                return true;
+            if (this.loaded) {
+                // Draw the image at the correct position based on the size
+                ctx.drawImage(this.image, this.x, this.y, this.size, this.size);
             }
-            return false;
+        }
+    
+        // Adjusted collision check to ONLY use the image's bounding box (NO circles)
+        checkCollision() {
+            if (invincible) return false;  // Skip collision if the diver is invincible
+        
+            // Get the bounding box for the obstacle image
+            const obstacleLeft = this.x;
+            const obstacleRight = this.x + this.size;
+            const obstacleTop = this.y;
+            const obstacleBottom = this.y + this.size;
+        
+            // Get the diver's bounding box
+            const diverLeft = diver.x;
+            const diverRight = diver.x + diver.size;
+            const diverTop = diver.y;
+            const diverBottom = diver.y + diver.size;
+    
+            // Check if the diver's bounding box intersects with the obstacle's bounding box
+            const collisionDetected = !(diverRight < obstacleLeft || 
+                                        diverLeft > obstacleRight || 
+                                        diverBottom < obstacleTop || 
+                                        diverTop > obstacleBottom);
+    
+            return collisionDetected;  // Return true if a collision has occurred
         }
     }
-  
+    
     class Fish {
         constructor() {
             this.x = canvas.width + Math.random() * 300;
@@ -171,68 +197,133 @@ document.addEventListener("DOMContentLoaded", () => {
   
     function update() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+    
+        // Draw bubbles, fishes, treasures, obstacles
         bubbles.forEach((bubble) => {
             bubble.move();
             bubble.display();
         });
-  
+    
         fishes.forEach((fish) => {
             fish.move();
             fish.display();
         });
-  
+    
+        // If the game is paused, display the paused message, but continue animations
         if (!gameRunning) {
+            ctx.font = '48px retro-font';  // You can change the font size and style
+            ctx.fillStyle = 'white';  // Set the text color to white
+            ctx.textAlign = 'center';  // Center text horizontally
+            ctx.textBaseline = 'middle';  // Center text vertically
+            ctx.fillText('GAME PAUSED', canvas.width / 2, canvas.height / 2);  // Draw the text in the center
+    
+            // Draw the score (even when the game is paused)
+            ctx.font = '30px retro-font';
+            ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 100);  // Display score below the paused text
+    
+            // Continue the animation loop even while paused to display the message
             animationFrameRequest = requestAnimationFrame(update);
             return;
         }
-  
+    
+        // Normal game logic (when game is running)
         diver.velocity.x = 0;
         diver.velocity.y = 0;
         if (diver.moveUp) diver.velocity.y = -diver.speed;
         if (diver.moveDown) diver.velocity.y = diver.speed;
         if (diver.moveLeft) diver.velocity.x = -diver.speed;
         if (diver.moveRight) diver.velocity.x = diver.speed;
-  
+    
         diver.x += diver.velocity.x;
         diver.y += diver.velocity.y;
-  
+    
+        // Prevent diver from moving out of bounds
         if (diver.y < 0) diver.y = 0;
         if (diver.y > canvas.height - diver.size) diver.y = canvas.height - diver.size;
         if (diver.x < 0) diver.x = 0;
         if (diver.x > canvas.width - diver.size) diver.x = canvas.width - diver.size;
-  
+    
+        // Add random treasures, obstacles, and other elements
         if (Math.random() < 0.01) treasures.push(new Treasure());
         if (Math.random() < 0.01) obstacles.push(new Obstacle());
         if (bubbles.length < 30) bubbles.push(new Bubble());
         if (fishes.length < 10) fishes.push(new Fish());
-  
+    
         treasures.forEach((treasure, index) => {
             treasure.move();
             treasure.display();
-            if (treasure.collect()) {
-                treasures.splice(index, 1);
+    
+            const treasureCenterX = treasure.x + treasure.size / 2;
+            const treasureCenterY = treasure.y + treasure.size / 2;
+            const diverCenterX = diver.x + diver.size / 2;
+            const diverCenterY = diver.y + diver.size / 2;
+    
+            const dist = Math.hypot(treasureCenterX - diverCenterX, treasureCenterY - diverCenterY);
+            const threshold = (treasure.size / 2) + (diver.size / 2) * 0.5;
+    
+            if (dist < threshold) {
+                treasures.splice(index, 1); // Remove the treasure from the array
+                score += 10; // Add to score when treasure is collected
             }
         });
-  
-        obstacles.forEach((obstacle, index) => {
+    
+        obstacles.forEach((obstacle) => {
             obstacle.move();
             obstacle.display();
-            if (obstacle.checkCollision()) {
-                obstacles.splice(index, 1);
+    
+            // **Red Collision Box** for the obstacle (adjusted to fit the obstacle perfectly)
+            const collisionBoxSize = obstacle.size * 0.3;  // Small collision box size (adjust as needed)
+            const collisionBoxX = obstacle.x + (obstacle.size - collisionBoxSize) / 2;  // Centered on the obstacle
+            const collisionBoxY = obstacle.y + (obstacle.size - collisionBoxSize) / 2;  // Centered on the obstacle
+    
+            // Draw the **red collision box** for debugging
+            ctx.beginPath();
+            ctx.rect(collisionBoxX, collisionBoxY, collisionBoxSize, collisionBoxSize);
+            ctx.strokeStyle = "red";  // Color of the collision box
+            ctx.stroke();
+    
+            // **Refined Collision Detection** within the red collision box
+            const diverLeft = diver.x + (diver.size - diver.size * 0.3) / 2;
+            const diverTop = diver.y + (diver.size - diver.size * 0.3) / 2;
+            const diverRight = diver.x + diver.size * 0.7;
+            const diverBottom = diver.y + diver.size * 0.7;
+    
+            // Check if the diver's collision box is within the obstacle's red box
+            const isColliding = (
+                diverRight > collisionBoxX &&
+                diverLeft < collisionBoxX + collisionBoxSize &&
+                diverBottom > collisionBoxY &&
+                diverTop < collisionBoxY + collisionBoxSize
+            );
+    
+            if (isColliding) {
+                // If a collision happens inside the red box
                 loseLife();
             }
         });
-  
-        // Draw diver
-        ctx.fillStyle = diver.color;
+    
+        // Draw diver image (scaled to 150px)
+        ctx.drawImage(diver.image, diver.x, diver.y, diver.size, diver.size);
+    
+        // Now, we'll define a **smaller collision box** for the diver:
+        const collisionBoxSize = diver.size * 0.3;  // Small collision box (adjust the size as needed)
+        const collisionBoxX = diver.x + (diver.size - collisionBoxSize) / 2;  // Centered on the diver's image
+        const collisionBoxY = diver.y + (diver.size - collisionBoxSize) / 2;  // Centered on the diver's image
+        
+        // Draw the **smaller collision box** for debugging (just for testing)
         ctx.beginPath();
-        ctx.arc(diver.x, diver.y, diver.size / 2, 0, Math.PI * 2);
-        ctx.fill();
-  
+        ctx.rect(collisionBoxX, collisionBoxY, collisionBoxSize, collisionBoxSize);
+        ctx.strokeStyle = "red";  // Color of the collision box
+        ctx.stroke();
+    
+        // Draw the score during the game
+        ctx.font = '30px retro-font';
+        ctx.fillText(`Score: ${score}`, canvas.width / 2, 30);  // Display score in the top center
+    
         animationFrameRequest = requestAnimationFrame(update);
     }
-  
+    
+    
     function loseLife() {
         lives--;
         pauseGame();

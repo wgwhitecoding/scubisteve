@@ -29,7 +29,12 @@ body {
     height: 100%;
     background-color: transparent;
     z-index: 1;
+    display: block;
 }
+
+    
+ 
+
 
 /* Game Information Display */
 #game-info {
@@ -156,6 +161,16 @@ body {
 
 #pauseBtn:active {
     transform: scale(0.9);
+}
+
+
+div#diver {
+    position: absolute;
+    width: 150px; /* Keeps the diver's visual size as 150px */
+    height: 150px; /* Keeps the diver's visual size as 150px */
+    top: 0;
+    left: 0;
+    z-index: 10;
 }
 
 
