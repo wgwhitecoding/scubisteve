@@ -199,10 +199,10 @@ document.addEventListener("DOMContentLoaded", () => {
   
 
 
-// Function to make the diver invincible and flash
+// Function to make the diver invincible and flash for 5 seconds
 function makeInvincible() {
     invincible = true;
-    isFlashing = true; // Start the flashing effect
+    isFlashing = true; // Start the flashing effect immediately
 
     let flashCount = 0;
     const flashDuration = 500; // 500ms (half a second) for each flash
@@ -300,18 +300,12 @@ function update() {
         obstacle.move();
         obstacle.display();
 
-        // Red Collision Box for the obstacle (adjusted to fit the obstacle perfectly)
+        // Refined Collision Detection for obstacles
         const collisionBoxSize = obstacle.size * 0.3;  // Small collision box size (adjust as needed)
         const collisionBoxX = obstacle.x + (obstacle.size - collisionBoxSize) / 2;
         const collisionBoxY = obstacle.y + (obstacle.size - collisionBoxSize) / 2;
 
-        // Draw the red collision box for debugging
-        ctx.beginPath();
-        ctx.rect(collisionBoxX, collisionBoxY, collisionBoxSize, collisionBoxSize);
-        ctx.strokeStyle = "red";  // Color of the collision box
-        ctx.stroke();
-
-        // Refined Collision Detection within the red collision box
+        // Refined collision check
         const diverLeft = diver.x + (diver.size - diver.size * 0.3) / 2;
         const diverTop = diver.y + (diver.size - diver.size * 0.3) / 2;
         const diverRight = diver.x + diver.size * 0.7;
@@ -334,21 +328,10 @@ function update() {
     if (!isFlashing) {
         ctx.drawImage(diver.image, diver.x, diver.y, diver.size, diver.size);
     }
-    
-
-    // Now, we'll define a smaller collision box for the diver:
-    const collisionBoxSize = diver.size * 0.3;
-    const collisionBoxX = diver.x + (diver.size - collisionBoxSize) / 2;
-    const collisionBoxY = diver.y + (diver.size - collisionBoxSize) / 2;
-
-    // Draw the smaller collision box for debugging (just for testing)
-    ctx.beginPath();
-    ctx.rect(collisionBoxX, collisionBoxY, collisionBoxSize, collisionBoxSize);
-    ctx.strokeStyle = "red";  // Color of the collision box
-    ctx.stroke();
 
     animationFrameRequest = requestAnimationFrame(update);
 }
+
 
     
     
@@ -536,7 +519,8 @@ function update() {
             diver.velocity.y = 0;
     
             closeModal();  // Close the modal
-            makeInvincible();  // Make the diver invincible for a short time
+            makeInvincible();  // Make the diver invincible and start flashing
+    
             startTimer();  // Start the timer for the new level
     
             // Instead of pausing, directly resume the game
@@ -547,6 +531,7 @@ function update() {
             showGameOverModal();
         }
     }
+    
     
   
     function updateUI() {
@@ -574,23 +559,28 @@ function update() {
   
     function makeInvincible() {
         invincible = true;
-        isFlashing = true; // Use the variable without re-declaring it
+        isFlashing = true; // Start flashing
     
         let flashCount = 0;
-        const flashDuration = 500;
-        const flashLimit = 10;
+        const flashDuration = 500; // 500ms (half a second) for each flash
+        const flashLimit = 10; // 5 seconds / 500ms per flash = 10 flashes
     
+        // Flashing interval
         const flashInterval = setInterval(() => {
             flashCount++;
-            isFlashing = !isFlashing; // Toggle the value
     
+            // Toggle the flashing state
+            isFlashing = !isFlashing;
+    
+            // Stop flashing after 5 seconds
             if (flashCount >= flashLimit) {
                 clearInterval(flashInterval);
-                isFlashing = false; // Ensure it stops flashing
+                isFlashing = false; // Ensure diver becomes visible
                 invincible = false;
             }
         }, flashDuration);
     }
+    
     
   
     showStartGameModal();
