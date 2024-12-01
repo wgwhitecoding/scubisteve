@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let animationFrameRequest;
     let isFlashing = false; // Declare it once globally
  
-  
     const diver = {
         x: canvas.width / 4,
         y: canvas.height / 2,
@@ -35,7 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     diver.image.src = "assets/images/scubi_steve.png";
     
-  
     window.addEventListener("keydown", (e) => {
         if (modalOpen) return;
   
@@ -162,10 +160,20 @@ document.addEventListener("DOMContentLoaded", () => {
         constructor() {
             this.x = canvas.width + Math.random() * 300;
             this.y = Math.random() * canvas.height;
-            this.size = Math.random() * 30 + 20;
+            this.size = Math.random() * 50 + 30;  // Bigger fish size
             this.speed = Math.random() * 0.5 + 0.8;
+    
+            const fishImages = [
+                "assets/images/fish1.png", "assets/images/fish2.png", "assets/images/fish3.png",
+                "assets/images/fish4.png", "assets/images/fish5.png", "assets/images/fish6.png",
+                "assets/images/fish7.png", "assets/images/fish8.png", "assets/images/fish9.png",
+                "assets/images/fish10.png", "assets/images/fish11.png"
+            ];
+    
+            this.image = new Image();
+            this.image.src = fishImages[Math.floor(Math.random() * fishImages.length)];
         }
-  
+    
         move() {
             this.x -= this.speed;
             if (this.x < -this.size) {
@@ -173,14 +181,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 this.y = Math.random() * canvas.height;
             }
         }
-  
+    
         display() {
-            ctx.fillStyle = "orange";
-            ctx.beginPath();
-            ctx.ellipse(this.x, this.y, this.size, this.size / 2, 0, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.drawImage(this.image, this.x, this.y, this.size, this.size);
         }
     }
+    
+    // In the update function:
+    if (Math.random() < 0.05) fishes.push(new Fish());  // More frequent fish spawn
+    
+    
   
     function startTimer() {
         clearInterval(timerInterval);
@@ -197,9 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     }
   
-
-
-// Function to make the diver invincible and flash for 5 seconds
+// Function to make the diver flash for 5 seconds
 function makeInvincible() {
     invincible = true;
     isFlashing = true; // Start the flashing effect immediately
@@ -218,7 +226,7 @@ function makeInvincible() {
         // Stop flashing after 5 seconds
         if (flashCount >= flashLimit) {
             clearInterval(flashInterval);
-            isFlashing = false; // Ensure diver becomes visible
+            isFlashing = false; // Ensure diver stops flashing
             invincible = false;
         }
     }, flashDuration);
@@ -331,10 +339,6 @@ function update() {
 
     animationFrameRequest = requestAnimationFrame(update);
 }
-
-
-    
-    
     
     function loseLife() {
         if (invincible) return; // Skip life decrement if invincible
@@ -471,10 +475,16 @@ function update() {
         pauseButton.style.display = "block";
         closeModal();
         makeInvincible();
-        startTimer();
+    
+        // Set timer to 20 seconds for level 1 (testing)
+        if (level === 1) {
+            timer = 20;  // Set timer to 20 seconds for testing
+        }
+    
+        startTimer();  // Start the timer with the new timer value
         update();
     }
-  
+    
     function restartGame() {
         highestScore = Math.max(highestScore, score);
         pauseButton.style.display = "none";
@@ -517,13 +527,15 @@ function update() {
             diver.y = canvas.height / 2;
             diver.velocity.x = 0;
             diver.velocity.y = 0;
-    
-            closeModal();  // Close the modal
-            makeInvincible();  // Make the diver invincible and start flashing
-    
-            startTimer();  // Start the timer for the new level
-    
-            // Instead of pausing, directly resume the game
+        
+            // Ensure diver starts flashing when invincible at the beginning of the new level
+            makeInvincible();  // Call makeInvincible here to ensure it works after each level
+        
+            // Close modal after flashing starts
+            closeModal();
+        
+            // Start the timer and resume game immediately
+            startTimer();
             gameRunning = true;
             update();  // Start the game update loop for the new level
         } else {
@@ -531,8 +543,6 @@ function update() {
             showGameOverModal();
         }
     }
-    
-    
   
     function updateUI() {
         document.getElementById("score").textContent = `Score: ${score}`;
@@ -556,33 +566,7 @@ function update() {
     function enableButtons() {
         pauseButton.disabled = false;
     }
-  
-    function makeInvincible() {
-        invincible = true;
-        isFlashing = true; // Start flashing
     
-        let flashCount = 0;
-        const flashDuration = 500; // 500ms (half a second) for each flash
-        const flashLimit = 10; // 5 seconds / 500ms per flash = 10 flashes
-    
-        // Flashing interval
-        const flashInterval = setInterval(() => {
-            flashCount++;
-    
-            // Toggle the flashing state
-            isFlashing = !isFlashing;
-    
-            // Stop flashing after 5 seconds
-            if (flashCount >= flashLimit) {
-                clearInterval(flashInterval);
-                isFlashing = false; // Ensure diver becomes visible
-                invincible = false;
-            }
-        }, flashDuration);
-    }
-    
-    
-  
     showStartGameModal();
     updateUI();
     update(); // Keep bubbles animating in the background
