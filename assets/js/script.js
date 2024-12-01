@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let modalOpen = false;
     let invincible = false;
     let animationFrameRequest;
+    let isFlashing = false; // Declare it once globally
+ 
   
     const diver = {
         x: canvas.width / 4,
@@ -195,139 +197,167 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     }
   
-    function update() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-        // Draw bubbles, fishes, treasures, obstacles
-        bubbles.forEach((bubble) => {
-            bubble.move();
-            bubble.display();
-        });
-    
-        fishes.forEach((fish) => {
-            fish.move();
-            fish.display();
-        });
-    
-        // If the game is paused, display the paused message, but continue animations
-        if (!gameRunning) {
-            ctx.font = '48px retro-font';  // You can change the font size and style
-            ctx.fillStyle = 'white';  // Set the text color to white
-            ctx.textAlign = 'center';  // Center text horizontally
-            ctx.textBaseline = 'middle';  // Center text vertically
-            ctx.fillText('GAME PAUSED', canvas.width / 2, canvas.height / 2);  // Draw the text in the center
-    
-            // Draw the score (even when the game is paused)
-            ctx.font = '30px retro-font';
-            ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 100);  // Display score below the paused text
-    
-            // Continue the animation loop even while paused to display the message
-            animationFrameRequest = requestAnimationFrame(update);
-            return;
+
+
+// Function to make the diver invincible and flash
+function makeInvincible() {
+    invincible = true;
+    isFlashing = true; // Start the flashing effect
+
+    let flashCount = 0;
+    const flashDuration = 500; // 500ms (half a second) for each flash
+    const flashLimit = 10; // 5 seconds / 500ms per flash = 10 flashes
+
+    // Flashing interval
+    const flashInterval = setInterval(() => {
+        flashCount++;
+
+        // Toggle the flashing state
+        isFlashing = !isFlashing;
+
+        // Stop flashing after 5 seconds
+        if (flashCount >= flashLimit) {
+            clearInterval(flashInterval);
+            isFlashing = false; // Ensure diver becomes visible
+            invincible = false;
         }
-    
-        // Normal game logic (when game is running)
-        diver.velocity.x = 0;
-        diver.velocity.y = 0;
-        if (diver.moveUp) diver.velocity.y = -diver.speed;
-        if (diver.moveDown) diver.velocity.y = diver.speed;
-        if (diver.moveLeft) diver.velocity.x = -diver.speed;
-        if (diver.moveRight) diver.velocity.x = diver.speed;
-    
-        diver.x += diver.velocity.x;
-        diver.y += diver.velocity.y;
-    
-        // Prevent diver from moving out of bounds
-        if (diver.y < 0) diver.y = 0;
-        if (diver.y > canvas.height - diver.size) diver.y = canvas.height - diver.size;
-        if (diver.x < 0) diver.x = 0;
-        if (diver.x > canvas.width - diver.size) diver.x = canvas.width - diver.size;
-    
-        // Add random treasures, obstacles, and other elements
-        if (Math.random() < 0.01) treasures.push(new Treasure());
-        if (Math.random() < 0.01) obstacles.push(new Obstacle());
-        if (bubbles.length < 30) bubbles.push(new Bubble());
-        if (fishes.length < 10) fishes.push(new Fish());
-    
-        treasures.forEach((treasure, index) => {
-            treasure.move();
-            treasure.display();
-    
-            const treasureCenterX = treasure.x + treasure.size / 2;
-            const treasureCenterY = treasure.y + treasure.size / 2;
-            const diverCenterX = diver.x + diver.size / 2;
-            const diverCenterY = diver.y + diver.size / 2;
-    
-            const dist = Math.hypot(treasureCenterX - diverCenterX, treasureCenterY - diverCenterY);
-            const threshold = (treasure.size / 2) + (diver.size / 2) * 0.5;
-    
-            if (dist < threshold) {
-                treasures.splice(index, 1); // Remove the treasure from the array
-                score += 10; // Add to score when treasure is collected
-            }
-        });
-    
-        obstacles.forEach((obstacle) => {
-            obstacle.move();
-            obstacle.display();
-    
-            // **Red Collision Box** for the obstacle (adjusted to fit the obstacle perfectly)
-            const collisionBoxSize = obstacle.size * 0.3;  // Small collision box size (adjust as needed)
-            const collisionBoxX = obstacle.x + (obstacle.size - collisionBoxSize) / 2;  // Centered on the obstacle
-            const collisionBoxY = obstacle.y + (obstacle.size - collisionBoxSize) / 2;  // Centered on the obstacle
-    
-            // Draw the **red collision box** for debugging
-            ctx.beginPath();
-            ctx.rect(collisionBoxX, collisionBoxY, collisionBoxSize, collisionBoxSize);
-            ctx.strokeStyle = "red";  // Color of the collision box
-            ctx.stroke();
-    
-            // **Refined Collision Detection** within the red collision box
-            const diverLeft = diver.x + (diver.size - diver.size * 0.3) / 2;
-            const diverTop = diver.y + (diver.size - diver.size * 0.3) / 2;
-            const diverRight = diver.x + diver.size * 0.7;
-            const diverBottom = diver.y + diver.size * 0.7;
-    
-            // Check if the diver's collision box is within the obstacle's red box
-            const isColliding = (
-                diverRight > collisionBoxX &&
-                diverLeft < collisionBoxX + collisionBoxSize &&
-                diverBottom > collisionBoxY &&
-                diverTop < collisionBoxY + collisionBoxSize
-            );
-    
-            if (isColliding) {
-                // If a collision happens inside the red box
-                loseLife();
-            }
-        });
-    
-        // Draw diver image (scaled to 150px)
-        ctx.drawImage(diver.image, diver.x, diver.y, diver.size, diver.size);
-    
-        // Now, we'll define a **smaller collision box** for the diver:
-        const collisionBoxSize = diver.size * 0.3;  // Small collision box (adjust the size as needed)
-        const collisionBoxX = diver.x + (diver.size - collisionBoxSize) / 2;  // Centered on the diver's image
-        const collisionBoxY = diver.y + (diver.size - collisionBoxSize) / 2;  // Centered on the diver's image
-        
-        // Draw the **smaller collision box** for debugging (just for testing)
+    }, flashDuration);
+}
+
+function update() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw bubbles, fishes, treasures, obstacles
+    bubbles.forEach((bubble) => {
+        bubble.move();
+        bubble.display();
+    });
+
+    fishes.forEach((fish) => {
+        fish.move();
+        fish.display();
+    });
+
+    // If the game is paused, display the paused message, and the score
+    if (!gameRunning) {
+        ctx.font = '48px retro-font';
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('GAME PAUSED', canvas.width / 2, canvas.height / 2);
+
+        // Draw the score (even when the game is paused)
+        ctx.font = '30px retro-font';
+        ctx.fillText(`Score: ${score}`, canvas.width / 2, canvas.height / 2 + 100);
+
+        // Continue the animation loop even while paused to display the message
+        animationFrameRequest = requestAnimationFrame(update);
+        return;
+    }
+
+    // Normal game logic (when game is running)
+    diver.velocity.x = 0;
+    diver.velocity.y = 0;
+    if (diver.moveUp) diver.velocity.y = -diver.speed;
+    if (diver.moveDown) diver.velocity.y = diver.speed;
+    if (diver.moveLeft) diver.velocity.x = -diver.speed;
+    if (diver.moveRight) diver.velocity.x = diver.speed;
+
+    diver.x += diver.velocity.x;
+    diver.y += diver.velocity.y;
+
+    // Prevent diver from moving out of bounds
+    if (diver.y < 0) diver.y = 0;
+    if (diver.y > canvas.height - diver.size) diver.y = canvas.height - diver.size;
+    if (diver.x < 0) diver.x = 0;
+    if (diver.x > canvas.width - diver.size) diver.x = canvas.width - diver.size;
+
+    // Add random treasures, obstacles, and other elements
+    if (Math.random() < 0.01) treasures.push(new Treasure());
+    if (Math.random() < 0.01) obstacles.push(new Obstacle());
+    if (bubbles.length < 30) bubbles.push(new Bubble());
+    if (fishes.length < 10) fishes.push(new Fish());
+
+    treasures.forEach((treasure, index) => {
+        treasure.move();
+        treasure.display();
+
+        const treasureCenterX = treasure.x + treasure.size / 2;
+        const treasureCenterY = treasure.y + treasure.size / 2;
+        const diverCenterX = diver.x + diver.size / 2;
+        const diverCenterY = diver.y + diver.size / 2;
+
+        const dist = Math.hypot(treasureCenterX - diverCenterX, treasureCenterY - diverCenterY);
+        const threshold = (treasure.size / 2) + (diver.size / 2) * 0.5;
+
+        if (dist < threshold) {
+            treasures.splice(index, 1); // Remove the treasure from the array
+            score += 10; // Add to score when treasure is collected
+        }
+    });
+
+    obstacles.forEach((obstacle) => {
+        obstacle.move();
+        obstacle.display();
+
+        // Red Collision Box for the obstacle (adjusted to fit the obstacle perfectly)
+        const collisionBoxSize = obstacle.size * 0.3;  // Small collision box size (adjust as needed)
+        const collisionBoxX = obstacle.x + (obstacle.size - collisionBoxSize) / 2;
+        const collisionBoxY = obstacle.y + (obstacle.size - collisionBoxSize) / 2;
+
+        // Draw the red collision box for debugging
         ctx.beginPath();
         ctx.rect(collisionBoxX, collisionBoxY, collisionBoxSize, collisionBoxSize);
         ctx.strokeStyle = "red";  // Color of the collision box
         ctx.stroke();
-    
-        // Draw the score during the game
-        ctx.font = '30px retro-font';
-        ctx.fillText(`Score: ${score}`, canvas.width / 2, 30);  // Display score in the top center
-    
-        animationFrameRequest = requestAnimationFrame(update);
+
+        // Refined Collision Detection within the red collision box
+        const diverLeft = diver.x + (diver.size - diver.size * 0.3) / 2;
+        const diverTop = diver.y + (diver.size - diver.size * 0.3) / 2;
+        const diverRight = diver.x + diver.size * 0.7;
+        const diverBottom = diver.y + diver.size * 0.7;
+
+        const isColliding = (
+            diverRight > collisionBoxX &&
+            diverLeft < collisionBoxX + collisionBoxSize &&
+            diverBottom > collisionBoxY &&
+            diverTop < collisionBoxY + collisionBoxSize
+        );
+
+        if (isColliding) {
+            // If a collision happens inside the red box
+            loseLife();
+        }
+    });
+
+    // Draw diver image only if not flashing
+    if (!isFlashing) {
+        ctx.drawImage(diver.image, diver.x, diver.y, diver.size, diver.size);
     }
+    
+
+    // Now, we'll define a smaller collision box for the diver:
+    const collisionBoxSize = diver.size * 0.3;
+    const collisionBoxX = diver.x + (diver.size - collisionBoxSize) / 2;
+    const collisionBoxY = diver.y + (diver.size - collisionBoxSize) / 2;
+
+    // Draw the smaller collision box for debugging (just for testing)
+    ctx.beginPath();
+    ctx.rect(collisionBoxX, collisionBoxY, collisionBoxSize, collisionBoxSize);
+    ctx.strokeStyle = "red";  // Color of the collision box
+    ctx.stroke();
+
+    animationFrameRequest = requestAnimationFrame(update);
+}
+
+    
     
     
     function loseLife() {
+        if (invincible) return; // Skip life decrement if invincible
         lives--;
-        pauseGame();
         if (lives > 0) {
+            pauseGame();
             showLifeModal();
         } else {
             showGameOverModal();
@@ -337,7 +367,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function showLifeModal() {
         modalOpen = true;
         disableButtons();
-  
+    
         const modal = document.getElementById("modal");
         modal.innerHTML = `
             <h2>You Crashed!</h2>
@@ -345,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <button id="continueBtn">Continue</button>
         `;
         modal.style.display = "block";
-  
+    
         document.getElementById("continueBtn").addEventListener("click", () => {
             closeModal();
             resetDiverPosition();
@@ -472,7 +502,7 @@ document.addEventListener("DOMContentLoaded", () => {
         gameRunning = false;
         score = 0;
         level = 1;
-        lives = 3;
+        lives = 3; // Reset lives to 3 at the start of every game
         timer = 120;
         treasures = [];
         obstacles = [];
@@ -490,23 +520,34 @@ document.addEventListener("DOMContentLoaded", () => {
         diver.velocity.x = 0;
         diver.velocity.y = 0;
         diver.moveUp = diver.moveDown = diver.moveLeft = diver.moveRight = false;
+        diver.image.style.visibility = "visible"; // Ensure diver is visible after reset
     }
   
     function nextLevel() {
         if (level < 10) {
             level++;
-            timer = 120;
+            timer = 120; // Reset timer for the new level
             treasures = [];
             obstacles = [];
             fishes = [];
-            closeModal();
-            makeInvincible();
-            startTimer();
-            update();
+            diver.x = canvas.width / 4;  // Reset diver position
+            diver.y = canvas.height / 2;
+            diver.velocity.x = 0;
+            diver.velocity.y = 0;
+    
+            closeModal();  // Close the modal
+            makeInvincible();  // Make the diver invincible for a short time
+            startTimer();  // Start the timer for the new level
+    
+            // Instead of pausing, directly resume the game
+            gameRunning = true;
+            update();  // Start the game update loop for the new level
         } else {
+            // End the game after level 10
             showGameOverModal();
         }
     }
+    
   
     function updateUI() {
         document.getElementById("score").textContent = `Score: ${score}`;
@@ -533,17 +574,24 @@ document.addEventListener("DOMContentLoaded", () => {
   
     function makeInvincible() {
         invincible = true;
+        isFlashing = true; // Use the variable without re-declaring it
+    
         let flashCount = 0;
+        const flashDuration = 500;
+        const flashLimit = 10;
+    
         const flashInterval = setInterval(() => {
-            diver.color = diver.color === "yellow" ? "transparent" : "yellow";
             flashCount++;
-            if (flashCount >= 6) {
+            isFlashing = !isFlashing; // Toggle the value
+    
+            if (flashCount >= flashLimit) {
                 clearInterval(flashInterval);
-                diver.color = "yellow";
+                isFlashing = false; // Ensure it stops flashing
                 invincible = false;
             }
-        }, 500);
+        }, flashDuration);
     }
+    
   
     showStartGameModal();
     updateUI();
