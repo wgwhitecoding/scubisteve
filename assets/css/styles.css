@@ -186,6 +186,137 @@ div#diver {
         opacity: 0;
     }
 }
+/* General CSS Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  body {
+    overflow: hidden;
+    background-color: #1e1e1e;
+    color: white;
+    text-align: center;
+  }
+  
+  /* Game Canvas Styles */
+  #gameCanvas {
+    display: block;
+    background: linear-gradient(#1a1a8b, #87ceeb);
+    position: relative;
+    margin: auto;
+  }
+  
+  /* Modal Styling */
+  #modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 15px;
+    padding: 20px;
+    color: #fff;
+    box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.2);
+    z-index: 1000;
+    display: none;
+  }
+  
+  #modal h2 {
+    margin-bottom: 10px;
+    font-size: 2em;
+  }
+  
+  #modal p {
+    font-size: 1.2em;
+  }
+  
+  #modal button {
+    background-color: #ff6347;
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: background-color 0.3s;
+  }
+  
+  #modal button:hover {
+    background-color: #ff856b;
+  }
+  
+  /* Landscape Overlay for Mobile Devices */
+  #landscapePrompt {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    z-index: 1500;
+  }
+  
+  #landscapePrompt p {
+    font-size: 2em;
+  }
+  
+  /* Touch Controls for Mobile Devices */
+  #touchControls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+  }
+  
+  .touch-button {
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid #fff;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2em;
+    color: #fff;
+    cursor: pointer;
+    user-select: none;
+  }
+  
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    #modal {
+      width: 80%;
+      padding: 15px;
+    }
+  
+    #modal h2 {
+      font-size: 1.5em;
+    }
+  
+    #modal p {
+      font-size: 1em;
+    }
+  
+    #modal button {
+      padding: 10px 20px;
+      font-size: 0.9em;
+    }
+  }
+  
 
 /* Responsive Design for Small Screens */
 @media (max-width: 768px) {
