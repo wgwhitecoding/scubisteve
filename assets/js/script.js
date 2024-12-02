@@ -33,6 +33,38 @@ document.addEventListener("DOMContentLoaded", () => {
         moveRight: false,
     };
     diver.image.src = "assets/images/scubi_steve.png";
+
+     // Touch interaction to move the diver
+     let touchStartX = 0;
+     let touchStartY = 0;
+ 
+     canvas.addEventListener("touchstart", (e) => {
+         const touch = e.touches[0];
+         touchStartX = touch.clientX;
+         touchStartY = touch.clientY;
+     });
+ 
+     canvas.addEventListener("touchmove", (e) => {
+         e.preventDefault(); // Prevent scrolling on touch
+ 
+         const touch = e.touches[0];
+         const deltaX = touch.clientX - touchStartX;
+         const deltaY = touch.clientY - touchStartY;
+ 
+         // Move the diver based on touch movement
+         diver.x += deltaX;
+         diver.y += deltaY;
+ 
+         // Update the touch start positions for continuous movement tracking
+         touchStartX = touch.clientX;
+         touchStartY = touch.clientY;
+ 
+         // Prevent diver from moving out of bounds
+         if (diver.y < 0) diver.y = 0;
+         if (diver.y > canvas.height - diver.size) diver.y = canvas.height - diver.size;
+         if (diver.x < 0) diver.x = 0;
+         if (diver.x > canvas.width - diver.size) diver.x = canvas.width - diver.size;
+     });
     
     window.addEventListener("keydown", (e) => {
         if (modalOpen) return;
@@ -520,46 +552,76 @@ function update() {
     
         const canvas = document.getElementById("gameCanvas");
     
-        // Variables to track touch position
-        let touchStartX = 0;
-        let touchStartY = 0;
+        // Full-Screen Button Setup
+        const fullscreenBtn = document.createElement("button");
+        fullscreenBtn.id = "fullscreenBtn";
+        fullscreenBtn.textContent = "Full Screen";
+        document.body.appendChild(fullscreenBtn);
     
-        // Function to start tracking touch
-        function handleTouchStart(e) {
-            const touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
+        const quitFullscreenBtn = document.createElement("button");
+        quitFullscreenBtn.id = "quitFullscreenBtn";
+        quitFullscreenBtn.textContent = "Quit Full Screen";
+        document.body.appendChild(quitFullscreenBtn);
+    
+        fullscreenBtn.addEventListener("click", () => {
+            requestFullScreen(canvas);
+        });
+    
+        quitFullscreenBtn.addEventListener("click", () => {
+            exitFullScreen();
+        });
+    
+        document.addEventListener("fullscreenchange", () => {
+            if (document.fullscreenElement) {
+                fullscreenBtn.style.display = "none";
+                quitFullscreenBtn.style.display = "block";
+            } else {
+                fullscreenBtn.style.display = "block";
+                quitFullscreenBtn.style.display = "none";
+            }
+        });
+    
+        // Orientation change handler to trigger full-screen when landscape
+        function handleOrientationChange() {
+            if (window.innerHeight < window.innerWidth) {
+                requestFullScreen(canvas);
+            }
         }
     
-        // Function to handle touch movement
-        function handleTouchMove(e) {
-            e.preventDefault(); // Prevent scrolling
+        window.addEventListener("orientationchange", handleOrientationChange);
     
-            const touch = e.touches[0];
-            const deltaX = touch.clientX - touchStartX;
-            const deltaY = touch.clientY - touchStartY;
-    
-            // Update diver position based on touch movement
-            diver.x += deltaX;
-            diver.y += deltaY;
-    
-            // Ensure diver stays within bounds
-            if (diver.y < 0) diver.y = 0;
-            if (diver.y > canvas.height - diver.size) diver.y = canvas.height - diver.size;
-            if (diver.x < 0) diver.x = 0;
-            if (diver.x > canvas.width - diver.size) diver.x = canvas.width - diver.size;
-    
-            // Update touch start positions for continuous tracking
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
+        function requestFullScreen(element) {
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.webkitRequestFullscreen) { // Safari compatibility
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) { // IE11 compatibility
+                element.msRequestFullscreen();
+            }
         }
     
-        // Add event listeners for touch events on the canvas
-        canvas.addEventListener("touchstart", handleTouchStart, false);
-        canvas.addEventListener("touchmove", handleTouchMove, false);
+        function exitFullScreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) { // Safari compatibility
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) { // IE11 compatibility
+                document.msExitFullscreen();
+            }
+        }
     
-        // Existing game update and rendering functions...
-        update();
+        // Show a prompt if in portrait mode
+        function checkOrientation() {
+            const landscapePrompt = document.getElementById("landscapePrompt");
+            if (window.innerHeight > window.innerWidth) {
+                landscapePrompt.style.display = "flex";
+            } else {
+                landscapePrompt.style.display = "none";
+            }
+        }
+    
+        window.addEventListener("resize", checkOrientation);
+        checkOrientation(); // Initial check on load
     });
     
   
