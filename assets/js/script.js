@@ -478,7 +478,7 @@ function update() {
     
         // Set timer to 20 seconds for level 1 (testing)
         if (level === 1) {
-            timer = 20;  // Set timer to 20 seconds for testing
+            timer = 120;  // Set timer to 20 seconds for testing
         }
     
         startTimer();  // Start the timer with the new timer value
@@ -528,8 +528,7 @@ function update() {
             diver.velocity.x = 0;
             diver.velocity.y = 0;
         
-            // Ensure diver starts flashing when invincible at the beginning of the new level
-            makeInvincible();  // Call makeInvincible here to ensure it works after each level
+            
         
             // Close modal after flashing starts
             closeModal();
